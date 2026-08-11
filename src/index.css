@@ -1,0 +1,116 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens.
+ *
+ * The palette is sampled directly from the brand logo (brand/nuto-logo-source.svg):
+ * slate for type, cashew copper for accents, leaf green for the veg/organic cues.
+ */
+@theme {
+  --color-ink: #3a4149;
+  --color-ink-soft: #5b6269;
+  --color-ink-muted: #8b9196;
+
+  --color-cashew: #c7894e;
+  --color-cashew-deep: #a2632e;
+  --color-cashew-light: #e6af74;
+  --color-cashew-pale: #f7ead9;
+
+  --color-leaf: #879551;
+  --color-leaf-light: #a7b55e;
+
+  --color-shell: #fdfdfc;
+  --color-sand: #f6f2ec;
+  --color-sand-deep: #ebe4d9;
+  --color-line: #e2dbd0;
+
+  --color-danger: #a32530;
+  --color-success: #2f7a4f;
+
+  /*
+   * Per-flavour accents, taken from the actual jar labels then darkened where
+   * needed so white text on them clears 4.5:1. The label kraft and lime are far
+   * too light to carry white text at their true values.
+   */
+  --color-flavour-original: #8a6d3f;
+  --color-flavour-fire: #a32530;
+  --color-flavour-velvet: #b4276b;
+  --color-flavour-zest: #5f7a1b;
+  --color-flavour-smoke: #34352f;
+  --color-flavour-milk-choco: #8a5a3f;
+
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 0.75rem;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-shell);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One consistent, visible focus ring for keyboard users across the whole site. */
+  :focus-visible {
+    outline: 2px solid var(--color-cashew-deep);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-cashew-light);
+    color: var(--color-ink);
+  }
+}
+
+@layer utilities {
+  /* Skip link: off-screen until focused. */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+  }
+  .skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
