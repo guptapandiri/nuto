@@ -95,7 +95,7 @@ export function ShopLayout({
             ))}
           </nav>
           <p className="mt-5">
-            {business.legalName} · {business.address.city} {business.address.pincode} · FSSAI{' '}
+            {business.name} · {business.address.city} {business.address.pincode} · FSSAI{' '}
             {business.fssaiLicence}
           </p>
           <p className="mt-1">{business.phone}</p>
