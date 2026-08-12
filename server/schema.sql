@@ -160,6 +160,32 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
 
 CREATE INDEX IF NOT EXISTS admin_sessions_expiry_idx ON admin_sessions (expires_at);
 
+-- --------------------------------------------------------------- customers
+
+CREATE TABLE IF NOT EXISTS customer_users (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email          text NOT NULL,
+  password_hash  text NOT NULL,
+  name           text NOT NULL,
+  mobile         text NOT NULL,
+  is_active      boolean NOT NULL DEFAULT true,
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  updated_at     timestamptz NOT NULL DEFAULT now(),
+  last_login_at  timestamptz
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS customer_users_email_key ON customer_users (lower(email));
+
+CREATE TABLE IF NOT EXISTS customer_sessions (
+  token_hash   text PRIMARY KEY,
+  customer_id uuid NOT NULL REFERENCES customer_users(id) ON DELETE CASCADE,
+  expires_at  timestamptz NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  user_agent  text NOT NULL DEFAULT ''
+);
+
+CREATE INDEX IF NOT EXISTS customer_sessions_expiry_idx ON customer_sessions (expires_at);
+
 -- ----------------------------------------------------------------- settings
 
 CREATE TABLE IF NOT EXISTS settings (

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { CartDrawer } from '@/components/cart/CartDrawer';
-import { FavoritesDrawer } from '@/components/favorites/FavoritesDrawer';
 import { business } from '@/data/business';
 import { rupees } from '@/data/range';
 import { useCart } from '@/hooks/useCart';
@@ -117,7 +116,6 @@ export function ShopLayout({
       )}
 
       <CartDrawer />
-      <FavoritesDrawer />
     </div>
   );
 }

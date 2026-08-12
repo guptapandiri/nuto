@@ -7,6 +7,7 @@ import { purgeExpiredSessions } from './auth.ts';
 import { pool } from './db.ts';
 import { allowedOrigins, env, isProduction } from './env.ts';
 import { admin } from './routes/admin.ts';
+import { account } from './routes/account.ts';
 import { catalog } from './routes/catalog.ts';
 import { orders } from './routes/orders.ts';
 
@@ -62,6 +63,7 @@ app.get('/api/health', async (c) => {
 app.route('/api', catalog);
 app.route('/api', orders);
 app.route('/api', admin);
+app.route('/api', account);
 
 app.onError((error, c) => {
   console.error('[api] unhandled:', error);

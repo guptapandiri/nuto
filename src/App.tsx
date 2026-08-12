@@ -6,6 +6,9 @@ import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { CartProvider } from '@/context/CartProvider';
 import { FavoritesProvider } from '@/context/FavoritesProvider';
+import { AccountProvider } from '@/context/AccountProvider';
+import { FavoritesDrawer } from '@/components/favorites/FavoritesDrawer';
+import { AccountDrawer } from '@/components/account/AccountDrawer';
 import { ScrollToTop } from '@/components/layout/ScrollToTop';
 import { CartPage } from '@/pages/CartPage';
 import { CheckoutPage } from '@/pages/CheckoutPage';
@@ -50,9 +53,10 @@ export function App() {
   return (
     <CartProvider>
       <FavoritesProvider>
-        <ScrollToTop />
-        <Suspense fallback={<Loading />}>
-          <Routes>
+        <AccountProvider>
+          <ScrollToTop />
+          <Suspense fallback={<Loading />}>
+            <Routes>
         {/*
          * Design concepts render bare — no site header, footer or cart — because
          * the whole point is that each one looks like a different company.
@@ -81,8 +85,11 @@ export function App() {
         <Route path="/shop-v2" element={<ShopV2Page />} />
 
         <Route path="*" element={<Storefront />} />
-          </Routes>
-        </Suspense>
+            </Routes>
+          </Suspense>
+          <FavoritesDrawer />
+          <AccountDrawer />
+        </AccountProvider>
       </FavoritesProvider>
     </CartProvider>
   );

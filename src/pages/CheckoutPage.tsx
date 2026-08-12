@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Field } from '@/components/ui/Field';
@@ -6,6 +6,7 @@ import { Container, Section } from '@/components/ui/Section';
 import { commerce } from '@/data/business';
 import { indianStates } from '@/data/indianStates';
 import { useCart } from '@/hooks/useCart';
+import { useAccount } from '@/hooks/useAccount';
 import { cn } from '@/lib/cn';
 import { resolveCoupon } from '@/lib/coupon';
 import { formatPaiseCompact } from '@/lib/money';
@@ -29,6 +30,7 @@ const emptyAddress: ShippingAddress = {
 export function CheckoutPage() {
   const navigate = useNavigate();
   const { resolvedLines, clearCart } = useCart();
+  const { account } = useAccount();
 
   const [address, setAddress] = useState<ShippingAddress>(emptyAddress);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('prepaid');
@@ -38,6 +40,16 @@ export function CheckoutPage() {
   const [couponInput, setCouponInput] = useState('');
   const [couponCode, setCouponCode] = useState<string | undefined>();
   const [couponError, setCouponError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!account) return;
+    setAddress((current) => ({
+      ...current,
+      fullName: current.fullName || account.name,
+      mobile: current.mobile || account.mobile,
+      email: current.email || account.email,
+    }));
+  }, [account]);
 
   const totals = calculateTotals(resolvedLines, paymentMethod, couponCode);
 

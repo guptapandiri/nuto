@@ -25,4 +25,4 @@ COPY --from=build /app/src ./src
 COPY --from=build /app/dist ./dist
 
 EXPOSE 8080
-CMD ["node_modules/.bin/tsx", "server/index.ts"]
+CMD ["sh", "-c", "node_modules/.bin/tsx server/migrate.ts && exec node_modules/.bin/tsx server/index.ts"]

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { useCart } from '@/hooks/useCart';
+import { useFavorites } from '@/hooks/useFavorites';
+import { useAccount } from '@/hooks/useAccount';
 import { cn } from '@/lib/cn';
 
 const navigation = [
@@ -12,6 +14,8 @@ const navigation = [
 
 export function Header() {
   const { itemCount, openDrawer } = useCart();
+  const { favoriteCount, openDrawer: openFavorites } = useFavorites();
+  const { account, openDrawer: openAccount } = useAccount();
   const [isMenuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -51,6 +55,29 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={openFavorites}
+            className="relative flex size-10 items-center justify-center rounded-full transition-colors hover:bg-sand"
+            aria-label={`Open favorites, ${favoriteCount} ${favoriteCount === 1 ? 'pack' : 'packs'}`}
+          >
+            <HeartIcon />
+            {favoriteCount > 0 && (
+              <span className="absolute top-1 right-0.5 flex min-w-4.5 items-center justify-center rounded-full bg-[#E23744] px-1 text-[10px] font-semibold text-white tabular-nums">
+                {favoriteCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={openAccount}
+            className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-sand"
+            aria-label={account ? `Account details for ${account.name}` : 'Log in or create account'}
+          >
+            <AccountIcon />
+          </button>
+
           <button
             type="button"
             onClick={openDrawer}
@@ -117,6 +144,23 @@ function CartIcon() {
         strokeWidth="1.6"
         strokeLinecap="round"
       />
+    </svg>
+  );
+}
+
+function HeartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function AccountIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M5 20c.5-4 3-6 7-6s6.5 2 7 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
