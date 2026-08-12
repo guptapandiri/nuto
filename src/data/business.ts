@@ -16,7 +16,7 @@ export const business = {
   city: 'Hyderabad',
 
   /** PLACEHOLDER — a real 14-digit FSSAI licence number is legally required. */
-  fssaiLicence: '10000000000000',
+  fssaiLicence: '1234567890',
 
   /** PLACEHOLDER — registered address shown in the footer and policies. */
   address: {
