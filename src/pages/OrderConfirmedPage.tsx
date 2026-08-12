@@ -3,11 +3,13 @@ import { ButtonLink } from '@/components/ui/Button';
 import { Container, Section } from '@/components/ui/Section';
 import { business, whatsappLink } from '@/data/business';
 import { formatPaiseCompact } from '@/lib/money';
+import { useAccount } from '@/hooks/useAccount';
 import type { PlacedOrder } from '@/types';
 
 export function OrderConfirmedPage() {
   const location = useLocation();
   const order = location.state as PlacedOrder | null;
+  const { account, openOrders } = useAccount();
 
   // Reached directly (refresh, bookmark, back button) — there is no order to show.
   if (!order?.reference) {
@@ -17,8 +19,9 @@ export function OrderConfirmedPage() {
           <div className="mx-auto max-w-lg rounded-card border border-line px-6 py-16 text-center">
             <h1 className="font-display text-2xl font-semibold">No order to show</h1>
             <p className="mt-3 text-ink-soft">
-              Order details are only shown once, right after checkout. If you have just
-              placed an order, check your email for the confirmation.
+              {account
+                ? 'Open Orders from the header to view your current and previous order details.'
+                : 'If you have just placed an order, check your email for the confirmation.'}
             </p>
             <ButtonLink to="/shop" size="lg" className="mt-6">
               Back to the shop
@@ -150,7 +153,16 @@ export function OrderConfirmedPage() {
             </div>
           </div>
 
-          <div className="mt-10 text-center">
+          <div className="mt-10 flex flex-wrap justify-center gap-3 text-center">
+            {account && (
+              <button
+                type="button"
+                onClick={openOrders}
+                className="rounded-lg bg-ink px-6 py-3 text-sm font-semibold text-shell transition-colors hover:bg-cashew-deep"
+              >
+                View your orders
+              </button>
+            )}
             <ButtonLink to="/shop" variant="secondary" size="lg">
               Continue shopping
             </ButtonLink>

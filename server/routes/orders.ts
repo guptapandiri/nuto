@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { getCookie } from 'hono/cookie';
 import { z } from 'zod';
 import { queryOne, transaction } from '../db.ts';
 import {
@@ -8,6 +9,7 @@ import {
   priceLines,
 } from '../lib/pricing.ts';
 import { resolveCoupon } from '../../src/lib/coupon.ts';
+import { CUSTOMER_SESSION_COOKIE, resolveCustomerSession } from '../auth.ts';
 
 export const orders = new Hono();
 
@@ -56,6 +58,8 @@ orders.post('/orders', async (c) => {
   }
 
   const { lines, paymentMethod, address, couponCode } = parsed.data;
+  const sessionToken = getCookie(c, CUSTOMER_SESSION_COOKIE);
+  const customer = sessionToken ? await resolveCustomerSession(sessionToken) : undefined;
 
   try {
     const order = await transaction(async (client) => {
@@ -111,15 +115,15 @@ orders.post('/orders', async (c) => {
         `INSERT INTO orders (
            reference, payment_method, subtotal_paise, discount_paise, shipping_paise, cod_fee_paise,
            total_paise, customer_name, customer_email, customer_mobile,
-           address_line1, address_line2, landmark, city, state, pincode
-         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+           address_line1, address_line2, landmark, city, state, pincode, customer_id
+         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
          RETURNING id, reference, created_at`,
         [
           generateReference(), paymentMethod,
           totals.subtotalPaise, totals.discountPaise, totals.shippingPaise, totals.codFeePaise, totals.totalPaise,
           address.fullName, address.email, address.mobile,
           address.addressLine1, address.addressLine2, address.landmark,
-          address.city, address.state, address.pincode,
+          address.city, address.state, address.pincode, customer?.id ?? null,
         ],
         client,
       );

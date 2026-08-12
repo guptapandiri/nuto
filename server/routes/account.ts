@@ -114,6 +114,77 @@ account.use('/account/*', async (c, next) => {
 
 account.get('/account/me', (c) => c.json(c.get('customer')));
 
+account.get('/account/orders', async (c) => {
+  const customer = c.get('customer');
+  const orderRows = await query<{
+    id: string;
+    reference: string;
+    status: 'pending' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
+    paymentMethod: 'prepaid' | 'cod';
+    paymentStatus: 'unpaid' | 'paid' | 'refunded' | 'failed';
+    subtotalPaise: number;
+    discountPaise: number;
+    shippingPaise: number;
+    codFeePaise: number;
+    totalPaise: number;
+    customerName: string;
+    addressLine1: string;
+    addressLine2: string;
+    landmark: string;
+    city: string;
+    state: string;
+    pincode: string;
+    trackingUrl: string | null;
+    createdAt: string;
+    updatedAt: string;
+  }>(
+    `SELECT id, reference, status, payment_method AS "paymentMethod",
+            payment_status AS "paymentStatus", subtotal_paise AS "subtotalPaise",
+            discount_paise AS "discountPaise", shipping_paise AS "shippingPaise",
+            cod_fee_paise AS "codFeePaise", total_paise AS "totalPaise",
+            customer_name AS "customerName", address_line1 AS "addressLine1",
+            address_line2 AS "addressLine2", landmark, city, state, pincode,
+            tracking_url AS "trackingUrl", created_at AS "createdAt", updated_at AS "updatedAt"
+       FROM orders
+      WHERE customer_id = $1
+      ORDER BY created_at DESC
+      LIMIT 50`,
+    [customer.id],
+  );
+
+  if (orderRows.length === 0) return c.json({ orders: [] });
+
+  const itemRows = await query<{
+    orderId: string;
+    sku: string;
+    name: string;
+    unitPricePaise: number;
+    quantity: number;
+    lineTotalPaise: number;
+  }>(
+    `SELECT order_id AS "orderId", sku, name, unit_price_paise AS "unitPricePaise",
+            quantity, line_total_paise AS "lineTotalPaise"
+       FROM order_items
+      WHERE order_id = ANY($1::uuid[])
+      ORDER BY id`,
+    [orderRows.map((order) => order.id)],
+  );
+
+  const itemsByOrder = new Map<string, typeof itemRows>();
+  for (const item of itemRows) {
+    const items = itemsByOrder.get(item.orderId) ?? [];
+    items.push(item);
+    itemsByOrder.set(item.orderId, items);
+  }
+
+  return c.json({
+    orders: orderRows.map(({ id, ...order }) => ({
+      ...order,
+      items: (itemsByOrder.get(id) ?? []).map(({ orderId: _orderId, ...item }) => item),
+    })),
+  });
+});
+
 account.patch('/account/me', async (c) => {
   const parsed = profileSchema.safeParse(await c.req.json().catch(() => null));
   if (!parsed.success) {

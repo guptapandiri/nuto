@@ -15,7 +15,7 @@ const navigation = [
 export function Header() {
   const { itemCount, openDrawer } = useCart();
   const { favoriteCount, openDrawer: openFavorites } = useFavorites();
-  const { account, openDrawer: openAccount } = useAccount();
+  const { account, openDrawer: openAccount, openOrders } = useAccount();
   const [isMenuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -76,6 +76,15 @@ export function Header() {
             aria-label={account ? `Account details for ${account.name}` : 'Log in or create account'}
           >
             <AccountIcon />
+          </button>
+
+          <button
+            type="button"
+            onClick={openOrders}
+            className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-sand"
+            aria-label="View current and previous orders"
+          >
+            <OrdersIcon />
           </button>
 
           <button
@@ -161,6 +170,15 @@ function AccountIcon() {
     <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
       <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6" />
       <path d="M5 20c.5-4 3-6 7-6s6.5 2 7 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function OrdersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
+      <path d="M5 6.5h14v13H5v-13Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M8 4v4M16 4v4M8 12h8M8 15.5h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }

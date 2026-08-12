@@ -60,6 +60,7 @@ export async function submitOrder(
 
   const response = await fetch(apiUrl('/api/orders'), {
     method: 'POST',
+    credentials: 'include',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       lines: lines.map((line) => ({ sku: line.slug, quantity: line.quantity })),

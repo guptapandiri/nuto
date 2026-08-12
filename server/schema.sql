@@ -186,6 +186,10 @@ CREATE TABLE IF NOT EXISTS customer_sessions (
 
 CREATE INDEX IF NOT EXISTS customer_sessions_expiry_idx ON customer_sessions (expires_at);
 
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id uuid
+  REFERENCES customer_users(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS orders_customer_idx ON orders (customer_id, created_at DESC);
+
 -- ----------------------------------------------------------------- settings
 
 CREATE TABLE IF NOT EXISTS settings (
