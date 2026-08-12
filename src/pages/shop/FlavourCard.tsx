@@ -4,6 +4,7 @@ import { variantSlug } from '@/data/catalogue';
 import { packSizes, rupees, type Flavour } from '@/data/range';
 import { useCart } from '@/hooks/useCart';
 import { QuantityStepper } from '@/components/ui/QuantityStepper';
+import { FavoriteButton } from '@/components/favorites/FavoriteButton';
 
 /** Invented MRP so the strike-through and % off have something to sit against. */
 const MRP_MULTIPLIER = 1.25;
@@ -41,6 +42,11 @@ export function FlavourCard({ flavour }: { flavour: Flavour }) {
         <span className="absolute top-2 left-2 rounded bg-[#E23744] px-1.5 py-0.5 text-[11px] font-bold text-white">
           {discount}% OFF
         </span>
+        <FavoriteButton
+          slug={slug}
+          itemLabel={`${flavour.name} ${size.grams}g`}
+          className="absolute top-2 right-2 shadow-sm"
+        />
         <span
           className="absolute right-2 bottom-2 rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase"
           style={{ backgroundColor: flavour.accent }}

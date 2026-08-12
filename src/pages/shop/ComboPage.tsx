@@ -15,6 +15,7 @@ import { flavours, packSizes, rupees } from '@/data/range';
 import { useCart } from '@/hooks/useCart';
 import { ComboCard } from './ComboCard';
 import { ShopLayout, TrustStrip } from './ShopLayout';
+import { FavoriteButton } from '@/components/favorites/FavoriteButton';
 
 export function ComboPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -125,6 +126,7 @@ export function ComboPage() {
                 >
                   ADD TO CART
                 </button>
+                <FavoriteButton slug={comboSlug(combo.slug)} itemLabel={combo.name} />
               </div>
             </div>
 

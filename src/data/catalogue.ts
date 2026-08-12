@@ -88,3 +88,14 @@ export function getCatalogueItem(slug: string): CatalogueItem | undefined {
     inStock: product.inStock,
   };
 }
+
+export function getCatalogueItemPath(slug: string): string {
+  if (slug.startsWith('combo-')) return `/c/${slug.slice('combo-'.length)}`;
+
+  const flavour = flavours.find((item) =>
+    packSizes.some((size) => variantSlug(item.slug, size.grams) === slug),
+  );
+  if (flavour) return `/p/${flavour.slug}`;
+
+  return `/product/${slug}`;
+}

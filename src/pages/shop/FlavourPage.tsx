@@ -10,6 +10,7 @@ import { combos } from '@/data/combos';
 import { ComboCard } from './ComboCard';
 import { FlavourCard } from './FlavourCard';
 import { ShopLayout, TrustStrip } from './ShopLayout';
+import { FavoriteButton } from '@/components/favorites/FavoriteButton';
 
 const MRP_MULTIPLIER = 1.25;
 
@@ -168,6 +169,10 @@ export function FlavourPage() {
               >
                 ADD TO CART
               </button>
+              <FavoriteButton
+                slug={variantSlug(flavour.slug, size.grams)}
+                itemLabel={`${flavour.name} ${size.grams}g`}
+              />
             </div>
 
             <PincodeCheck />

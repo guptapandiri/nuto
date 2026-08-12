@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { flavours } from '@/data/range';
 import { useCart } from '@/hooks/useCart';
+import { useFavorites } from '@/hooks/useFavorites';
 
 const offers = [
   'FREE shipping on orders above ₹499',
@@ -37,6 +38,7 @@ export function ShopHeader({
   onQuerySubmit: () => void;
 }) {
   const { itemCount, openDrawer } = useCart();
+  const { favoriteCount, openDrawer: openFavorites } = useFavorites();
   const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
   const needle = query.trim().toLowerCase();
   const suggestions = needle
@@ -152,6 +154,23 @@ export function ShopHeader({
             </div>
           )}
         </form>
+
+        <button
+          type="button"
+          onClick={openFavorites}
+          className="relative flex shrink-0 items-center gap-2 rounded-lg border border-neutral-300 px-3 py-2.5 text-[13px] font-medium hover:border-[#E23744] hover:text-[#E23744]"
+          aria-label={`Favorites, ${favoriteCount} packs`}
+        >
+          <svg viewBox="0 0 24 24" className="size-4.5" fill="none" aria-hidden="true">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="hidden sm:inline">Favorites</span>
+          {favoriteCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-[#E23744] text-[11px] font-bold text-white tabular-nums">
+              {favoriteCount}
+            </span>
+          )}
+        </button>
 
         <button
           type="button"

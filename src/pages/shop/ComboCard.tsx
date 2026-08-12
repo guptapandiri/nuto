@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { QuantityStepper } from '@/components/ui/QuantityStepper';
+import { FavoriteButton } from '@/components/favorites/FavoriteButton';
 import { comboSlug } from '@/data/catalogue';
 import {
   partsTotalInPaise,
@@ -36,8 +37,13 @@ export function ComboCard({ combo }: { combo: Combo }) {
             SAVE ₹{rupees(saved)}
           </span>
         )}
+        <FavoriteButton
+          slug={slug}
+          itemLabel={combo.name}
+          className="absolute top-2 right-2 shadow-sm"
+        />
         {combo.badge && (
-          <span className="absolute top-2 right-2 rounded bg-neutral-900/85 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase">
+          <span className="absolute top-14 right-2 rounded bg-neutral-900/85 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-white uppercase">
             {combo.badge}
           </span>
         )}
