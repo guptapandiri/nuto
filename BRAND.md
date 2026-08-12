@@ -98,7 +98,7 @@ Hindi/Telugu is fine for festival campaigns; the site itself is in English, whic
 
 Non-negotiable for a food business selling online here:
 
-- **FSSAI licence number** displayed in the footer and on every product page. Currently a placeholder — see the warning block in `src/data/business.ts`.
+- **FSSAI licence number** displayed in the footer and on every product page.
 - **Green veg mark** on product cards and product pages.
 - **Net weight in grams** displayed prominently (Legal Metrology).
 - **Allergen declaration** — tree nuts on every SKU, plus milk on the chocolate ones.
@@ -111,6 +111,6 @@ Non-negotiable for a food business selling online here:
 Carried forward from the Instagram audit, still open:
 
 1. **Prices are invented.** Every figure in `products.ts` and `giftBoxes.ts` is a placeholder.
-2. **Legal details are invented.** FSSAI number, registered address and email are still placeholders in `business.ts`. The contact number (+91 99495 04441) is real.
+2. **Some legal details are invented.** The registered address and email are still placeholders in `business.ts`. The FSSAI and contact numbers are confirmed.
 3. **No payment gateway.** See the seam documented in `src/lib/payment.ts`.
 4. **The Instagram account is still unconfigured** — no bio, no link, not a business account. Once this site is live it needs to go in the bio; that is currently the only distribution channel.

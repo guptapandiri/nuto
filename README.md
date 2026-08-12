@@ -123,4 +123,4 @@ See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for the full checklist. The short versi
 2. **Change the admin password** from the seed value.
 3. **Set `ALLOWED_ORIGINS`** — required in production or the API refuses credentialed requests.
 4. **Connect a payment gateway.** Orders currently store `payment_status = 'unpaid'`. `src/lib/payment.ts` documents the Razorpay path.
-5. **Confirmed prices and legal details** — MRPs, discounts, ratings, reviews, FSSAI number and registered address are still invented. See `NUTO.md` §5.
+5. **Confirmed prices and legal details** — MRPs, discounts, ratings, reviews and the registered address are still invented. See `NUTO.md` §5.

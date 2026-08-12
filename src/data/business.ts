@@ -15,8 +15,8 @@ export const business = {
   tagline: 'Flavor in every fold',
   city: 'Hyderabad',
 
-  /** PLACEHOLDER — a real 14-digit FSSAI licence number is legally required. */
-  fssaiLicence: '1234567890',
+  /** Confirmed 14-digit FSSAI licence number. */
+  fssaiLicence: '23626028001565',
 
   /** PLACEHOLDER — registered address shown in the footer and policies. */
   address: {

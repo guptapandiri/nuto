@@ -152,7 +152,6 @@ I wrote all of the following to make the layout real. **None of it came from the
 | Ingredient lists — Guntur chilli, Kashmiri chilli, 54% cocoa, black salt, curry leaf, jaggery… | `src/data/products.ts` | **Ingredient declarations are regulated.** Wrong lists are a labelling offence |
 | Allergen statements | product pages | **Safety-critical.** Currently derived from my invented ingredient lists |
 | "Dry-roasted not fried", "cold-smoked over hickory", "small batches" | product + homepage copy | Process claims about a kitchen I have never seen |
-| FSSAI licence number `10000000000000` | `src/data/business.ts` | **Legally required and currently fake** |
 | Registered address & legal entity name | `src/data/business.ts` | Legally required |
 | `hello@nuto.in` | footer, contact, order confirmation | Mailbox probably does not exist — confirmation emails would bounce |
 | Free shipping ₹499 / ₹69 flat / ₹39 COD | `src/data/business.ts` | Never checked against real courier rates |
@@ -184,7 +183,7 @@ The cart resolves through `src/data/catalogue.ts`, which covers both the legacy 
 1. **Does the §4b range replace §4a, or sit alongside it?** Everything downstream depends on this.
 2. **Is the premium positioning still the plan** at ₹1.50/g? The brand's own captions sell gifting and indulgence; the new pricing is everyday-snack territory.
 3. **Real ingredient and allergen lists** for whichever range ships. Not optional, not something I can invent.
-4. **FSSAI licence number and registered address.**
+4. **Registered address.**
 5. **A working email address**, or drop email from the order flow and run support on WhatsApp only.
 6. **Payment gateway** — Razorpay needs a registered entity, KYC and a bank account. Is that in place? The seam is documented in `src/lib/payment.ts`.
 7. **Where do orders go?** Right now an order exists only in the customer's browser history. COD orders need a destination before the first real sale.

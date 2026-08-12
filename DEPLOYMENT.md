@@ -132,6 +132,6 @@ Worth knowing, because none of it can be bypassed from the browser:
 
 1. **A payment gateway.** Orders are stored with `payment_status = 'unpaid'`. `src/lib/payment.ts` documents the Razorpay integration. The rule that matters: the key secret must never reach the bundle, and a client-side success callback is not proof of payment — verify the signature server-side.
 2. **Transactional email/SMS.** The confirmation page says an email was sent. Nothing sends one. Either wire up a provider or change that copy.
-3. **Real product data.** Prices, ingredients, allergens, FSSAI licence number and registered address are still placeholders. See `NUTO.md` §5.
+3. **Real product data.** Prices, ingredients, allergens and the registered address are still placeholders. See `NUTO.md` §5.
 4. **Backups.** Neon has point-in-time restore on paid plans. Turn it on before real orders exist.
 5. **A second admin user.** There is currently one. There is no password-reset flow, so if that password is lost, the only recovery is a direct database update.
