@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router';
+import { Link, NavLink } from 'react-router';
+import { CustomerMenu } from '@/components/account/CustomerMenu';
 import { useCart } from '@/hooks/useCart';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useAccount } from '@/hooks/useAccount';
 import { cn } from '@/lib/cn';
 
 const navigation = [
@@ -15,14 +14,6 @@ const navigation = [
 export function Header() {
   const { itemCount, openDrawer } = useCart();
   const { favoriteCount, openDrawer: openFavorites } = useFavorites();
-  const { account, openDrawer: openAccount, openOrders } = useAccount();
-  const [isMenuOpen, setMenuOpen] = useState(false);
-  const location = useLocation();
-
-  // Close the mobile menu whenever the route changes.
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [location.pathname]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-shell/90 backdrop-blur">
@@ -69,23 +60,7 @@ export function Header() {
             )}
           </button>
 
-          <button
-            type="button"
-            onClick={openAccount}
-            className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-sand"
-            aria-label={account ? `Account details for ${account.name}` : 'Log in or create account'}
-          >
-            <AccountIcon />
-          </button>
-
-          <button
-            type="button"
-            onClick={openOrders}
-            className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-sand"
-            aria-label="View current and previous orders"
-          >
-            <OrdersIcon />
-          </button>
+          <CustomerMenu compact />
 
           <button
             type="button"
@@ -100,40 +75,8 @@ export function Header() {
               </span>
             )}
           </button>
-
-          <button
-            type="button"
-            onClick={() => setMenuOpen((open) => !open)}
-            className="flex size-10 items-center justify-center rounded-full transition-colors hover:bg-sand md:hidden"
-            aria-expanded={isMenuOpen}
-            aria-controls="mobile-navigation"
-            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
-          >
-            {isMenuOpen ? <CloseIcon /> : <MenuIcon />}
-          </button>
         </div>
       </div>
-
-      {isMenuOpen && (
-        <nav
-          id="mobile-navigation"
-          aria-label="Primary mobile"
-          className="border-t border-line bg-shell md:hidden"
-        >
-          <ul className="mx-auto max-w-6xl px-5 py-2 sm:px-8">
-            {navigation.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  className="block border-b border-line py-3.5 text-base last:border-b-0"
-                >
-                  {item.label}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
     </header>
   );
 }
@@ -161,40 +104,6 @@ function HeartIcon() {
   return (
     <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function AccountIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
-      <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M5 20c.5-4 3-6 7-6s6.5 2 7 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function OrdersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-5" fill="none" aria-hidden="true">
-      <path d="M5 6.5h14v13H5v-13Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M8 4v4M16 4v4M8 12h8M8 15.5h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function MenuIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
-      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
-      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }

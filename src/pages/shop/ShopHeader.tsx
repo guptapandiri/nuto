@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { flavours } from '@/data/range';
 import { useCart } from '@/hooks/useCart';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useAccount } from '@/hooks/useAccount';
+import { CustomerMenu } from '@/components/account/CustomerMenu';
 
 const offers = [
   'FREE shipping on orders above ₹499',
@@ -40,7 +40,6 @@ export function ShopHeader({
 }) {
   const { itemCount, openDrawer } = useCart();
   const { favoriteCount, openDrawer: openFavorites } = useFavorites();
-  const { account, openDrawer: openAccount, openOrders } = useAccount();
   const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
   const needle = query.trim().toLowerCase();
   const suggestions = needle
@@ -174,31 +173,7 @@ export function ShopHeader({
           )}
         </button>
 
-        <button
-          type="button"
-          onClick={openAccount}
-          className="relative flex shrink-0 items-center gap-2 rounded-lg border border-neutral-300 px-3 py-2.5 text-[13px] font-medium hover:border-[#1B7A4B] hover:text-[#1B7A4B]"
-          aria-label={account ? `Account details for ${account.name}` : 'Log in or create account'}
-        >
-          <svg viewBox="0 0 24 24" className="size-4.5" fill="none" aria-hidden="true">
-            <circle cx="12" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.7" />
-            <path d="M5 20c.5-4 3-6 7-6s6.5 2 7 6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-          </svg>
-          <span className="hidden lg:inline">{account ? 'Account' : 'Log in'}</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={openOrders}
-          className="relative flex shrink-0 items-center gap-2 rounded-lg border border-neutral-300 px-3 py-2.5 text-[13px] font-medium hover:border-[#1B7A4B] hover:text-[#1B7A4B]"
-          aria-label="View current and previous orders"
-        >
-          <svg viewBox="0 0 24 24" className="size-4.5" fill="none" aria-hidden="true">
-            <path d="M5 6.5h14v13H5v-13Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-            <path d="M8 4v4M16 4v4M8 12h8M8 15.5h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-          </svg>
-          <span className="hidden xl:inline">Orders</span>
-        </button>
+        <CustomerMenu />
 
         <button
           type="button"
