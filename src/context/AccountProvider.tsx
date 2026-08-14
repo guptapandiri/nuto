@@ -26,7 +26,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const [account, setAccount] = useState<CustomerAccount | null>(null);
   const [isLoading, setLoading] = useState(true);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
-  const [drawerSection, setDrawerSection] = useState<'details' | 'orders'>('details');
+  const [drawerSection, setDrawerSection] = useState<'details' | 'orders' | 'tracking'>('details');
 
   useEffect(() => {
     let active = true;
@@ -90,6 +90,10 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
     setDrawerSection('orders');
     setDrawerOpen(true);
   }, []);
+  const openTracking = useCallback(() => {
+    setDrawerSection('tracking');
+    setDrawerOpen(true);
+  }, []);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
   const value = useMemo<AccountContextValue>(
@@ -100,13 +104,14 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       drawerSection,
       openDrawer,
       openOrders,
+      openTracking,
       closeDrawer,
       login,
       register,
       updateProfile,
       logout,
     }),
-    [account, isLoading, isDrawerOpen, drawerSection, openDrawer, openOrders, closeDrawer, login, register, updateProfile, logout],
+    [account, isLoading, isDrawerOpen, drawerSection, openDrawer, openOrders, openTracking, closeDrawer, login, register, updateProfile, logout],
   );
 
   return <AccountContext value={value}>{children}</AccountContext>;

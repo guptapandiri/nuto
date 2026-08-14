@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useAccount } from '@/hooks/useAccount';
 import { AccountOrders } from './AccountOrders';
+import { OrderTracking } from './OrderTracking';
 
 type AuthMode = 'login' | 'register';
 
@@ -40,14 +41,16 @@ export function AccountDrawer() {
       <button type="button" onClick={closeDrawer} aria-label="Close account" className="absolute inset-0 h-full w-full cursor-default bg-neutral-900/40" />
       <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Customer account" className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-white shadow-2xl focus:outline-none">
         <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-          <h2 className="text-lg font-bold">{account ? (drawerSection === 'orders' ? 'Your orders' : 'Account details') : mode === 'login' ? 'Log in' : 'Create account'}</h2>
+          <h2 className="text-lg font-bold">{drawerSection === 'tracking' ? 'Track order' : account ? (drawerSection === 'orders' ? 'Your orders' : 'Account details') : mode === 'login' ? 'Log in' : 'Create account'}</h2>
           <button type="button" onClick={closeDrawer} aria-label="Close account" className="grid size-9 place-items-center rounded-full hover:bg-neutral-100">
             <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-6">
-          {isLoading ? (
+          {drawerSection === 'tracking' && !account ? (
+            <OrderTracking />
+          ) : isLoading ? (
             <p className="text-sm text-neutral-500">Loading account…</p>
           ) : account ? (
             <SignedInAccount />
@@ -70,14 +73,21 @@ export function AccountDrawer() {
 }
 
 function SignedInAccount() {
-  const { drawerSection, openDrawer, openOrders } = useAccount();
+  const { drawerSection, openDrawer, openOrders, openTracking } = useAccount();
   return (
     <>
-      <div className="mb-6 grid grid-cols-2 rounded-lg bg-neutral-100 p-1" role="tablist" aria-label="Account sections">
+      <div className="mb-6 grid grid-cols-3 rounded-lg bg-neutral-100 p-1" role="tablist" aria-label="Account sections">
         <button type="button" role="tab" aria-selected={drawerSection === 'details'} onClick={openDrawer} className={`rounded-md px-3 py-2 text-sm font-semibold ${drawerSection === 'details' ? 'bg-white shadow-sm' : 'text-neutral-500'}`}>Details</button>
         <button type="button" role="tab" aria-selected={drawerSection === 'orders'} onClick={openOrders} className={`rounded-md px-3 py-2 text-sm font-semibold ${drawerSection === 'orders' ? 'bg-white shadow-sm' : 'text-neutral-500'}`}>Orders</button>
+        <button type="button" role="tab" aria-selected={drawerSection === 'tracking'} onClick={openTracking} className={`rounded-md px-3 py-2 text-sm font-semibold ${drawerSection === 'tracking' ? 'bg-white shadow-sm' : 'text-neutral-500'}`}>Track</button>
       </div>
-      {drawerSection === 'orders' ? <AccountOrders /> : <AccountDetails />}
+      {drawerSection === 'orders' ? (
+        <AccountOrders />
+      ) : drawerSection === 'tracking' ? (
+        <OrderTracking />
+      ) : (
+        <AccountDetails />
+      )}
     </>
   );
 }

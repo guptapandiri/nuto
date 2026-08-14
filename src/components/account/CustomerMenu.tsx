@@ -10,7 +10,7 @@ const menuLinks = [
 ];
 
 export function CustomerMenu({ compact = false }: { compact?: boolean }) {
-  const { account, openDrawer, openOrders, logout } = useAccount();
+  const { account, openDrawer, openOrders, openTracking, logout } = useAccount();
   const [isOpen, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -41,6 +41,11 @@ export function CustomerMenu({ compact = false }: { compact?: boolean }) {
   function showOrders() {
     setOpen(false);
     openOrders();
+  }
+
+  function showTracking() {
+    setOpen(false);
+    openTracking();
   }
 
   return (
@@ -85,6 +90,10 @@ export function CustomerMenu({ compact = false }: { compact?: boolean }) {
             <button type="button" role="menuitem" onClick={showOrders} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold hover:bg-neutral-100">
               <OrdersIcon />
               Orders
+            </button>
+            <button type="button" role="menuitem" onClick={showTracking} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold hover:bg-neutral-100">
+              <TrackingIcon />
+              Track order
             </button>
           </div>
 
@@ -131,6 +140,15 @@ function OrdersIcon() {
     <svg viewBox="0 0 24 24" className="size-4.5" fill="none" aria-hidden="true">
       <path d="M5 6.5h14v13H5v-13Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
       <path d="M8 4v4M16 4v4M8 12h8M8 15.5h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TrackingIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-4.5" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.6" />
+      <path d="m12 8 2.5 4.5L12 16l-2.5-3.5L12 8Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
     </svg>
   );
 }

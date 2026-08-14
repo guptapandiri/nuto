@@ -21,9 +21,10 @@ export interface AccountContextValue {
   account: CustomerAccount | null;
   isLoading: boolean;
   isDrawerOpen: boolean;
-  drawerSection: 'details' | 'orders';
+  drawerSection: 'details' | 'orders' | 'tracking';
   openDrawer: () => void;
   openOrders: () => void;
+  openTracking: () => void;
   closeDrawer: () => void;
   login: (details: LoginDetails) => Promise<void>;
   register: (details: RegistrationDetails) => Promise<void>;

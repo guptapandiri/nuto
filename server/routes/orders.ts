@@ -193,7 +193,8 @@ orders.get('/orders/:reference', async (c) => {
   const order = await queryOne(
     `SELECT reference, status, payment_method AS "paymentMethod",
             payment_status AS "paymentStatus", total_paise AS "totalPaise",
-            created_at AS "createdAt", tracking_url AS "trackingUrl"
+            created_at AS "createdAt", updated_at AS "updatedAt",
+            tracking_url AS "trackingUrl"
        FROM orders WHERE reference = $1`,
     [reference],
   );
