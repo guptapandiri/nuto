@@ -46,7 +46,7 @@ export const commerce = {
   flatShippingInPaise: 6900, // ₹69
   codFeeInPaise: 3900, // ₹39
   /** Prepaid discount is not applied automatically; shown as copy only. */
-  maxQuantityPerLine: 10,
+  maxQuantityPerLine: 99,
 } as const;
 
 export function whatsappLink(message: string): string {

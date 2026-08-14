@@ -197,3 +197,10 @@ CREATE TABLE IF NOT EXISTS settings (
   value       jsonb NOT NULL,
   updated_at  timestamptz NOT NULL DEFAULT now()
 );
+
+-- Raise the original per-SKU cap while preserving any later admin value above 10.
+UPDATE settings
+   SET value = jsonb_set(value, '{maxQuantityPerLine}', '99'::jsonb),
+       updated_at = now()
+ WHERE key = 'commerce'
+   AND COALESCE((value->>'maxQuantityPerLine')::integer, 10) <= 10;

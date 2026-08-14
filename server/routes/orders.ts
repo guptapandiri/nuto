@@ -36,7 +36,7 @@ const createOrderSchema = z.object({
     .array(
       z.object({
         sku: z.string().trim().min(1).max(120),
-        quantity: z.number().int().min(1).max(50),
+        quantity: z.number().int().min(1).max(99),
       }),
     )
     .min(1, 'Cart is empty')

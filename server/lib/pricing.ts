@@ -20,7 +20,7 @@ const FALLBACK: CommerceSettings = {
   freeShippingThresholdInPaise: 49900,
   flatShippingInPaise: 6900,
   codFeeInPaise: 3900,
-  maxQuantityPerLine: 10,
+  maxQuantityPerLine: 99,
 };
 
 export async function getCommerceSettings(client?: Sql): Promise<CommerceSettings> {
