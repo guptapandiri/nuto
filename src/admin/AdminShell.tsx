@@ -4,11 +4,13 @@ import { DashboardTab } from './DashboardTab';
 import { InventoryTab } from './InventoryTab';
 import { OrdersTab } from './OrdersTab';
 import { SettingsTab } from './SettingsTab';
+import { PromotionsTab } from './PromotionsTab';
 
 const tabs = [
   { key: 'dashboard', label: 'Dashboard' },
   { key: 'orders', label: 'Orders' },
   { key: 'inventory', label: 'Inventory' },
+  { key: 'promotions', label: 'Promotions' },
   { key: 'settings', label: 'Settings' },
 ] as const;
 
@@ -67,6 +69,7 @@ export function AdminShell({
         {tab === 'dashboard' && <DashboardTab onViewOrders={() => setTab('orders')} />}
         {tab === 'orders' && <OrdersTab />}
         {tab === 'inventory' && <InventoryTab />}
+        {tab === 'promotions' && <PromotionsTab />}
         {tab === 'settings' && <SettingsTab />}
       </main>
     </div>

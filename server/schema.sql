@@ -190,6 +190,26 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id uuid
   REFERENCES customer_users(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS orders_customer_idx ON orders (customer_id, created_at DESC);
 
+-- -------------------------------------------------------------- promotions
+
+CREATE TABLE IF NOT EXISTS promotions (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  kind        text NOT NULL CHECK (kind IN ('product_launch','offer','announcement')),
+  title       text NOT NULL,
+  message     text NOT NULL,
+  cta_label   text,
+  cta_url     text,
+  starts_at   timestamptz NOT NULL DEFAULT now(),
+  ends_at     timestamptz,
+  is_active   boolean NOT NULL DEFAULT true,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  CHECK (ends_at IS NULL OR ends_at > starts_at)
+);
+
+CREATE INDEX IF NOT EXISTS promotions_schedule_idx
+  ON promotions (is_active, starts_at, ends_at);
+
 -- ----------------------------------------------------------------- settings
 
 CREATE TABLE IF NOT EXISTS settings (

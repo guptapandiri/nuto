@@ -324,6 +324,80 @@ admin.patch('/admin/inventory', async (c) => {
   return c.json({ ok: true });
 });
 
+/* -------------------------------------------------------------- promotions */
+
+const promotionSchema = z.object({
+  kind: z.enum(['product_launch', 'offer', 'announcement']),
+  title: z.string().trim().min(2).max(120),
+  message: z.string().trim().min(2).max(300),
+  ctaLabel: z.string().trim().max(60).nullable(),
+  ctaUrl: z.string().trim().max(500).nullable(),
+  startsAt: z.string().datetime(),
+  endsAt: z.string().datetime().nullable(),
+  isActive: z.boolean(),
+}).superRefine((value, ctx) => {
+  if (value.endsAt && new Date(value.endsAt) <= new Date(value.startsAt)) {
+    ctx.addIssue({ code: 'custom', path: ['endsAt'], message: 'End must be after start' });
+  }
+  if ((value.ctaLabel && !value.ctaUrl) || (!value.ctaLabel && value.ctaUrl)) {
+    ctx.addIssue({ code: 'custom', path: ['ctaLabel'], message: 'CTA label and URL must be provided together' });
+  }
+  if (value.ctaUrl && !/^(https?:\/\/|\/)/.test(value.ctaUrl)) {
+    ctx.addIssue({ code: 'custom', path: ['ctaUrl'], message: 'CTA URL must be an absolute URL or start with /' });
+  }
+});
+
+admin.get('/admin/promotions', async (c) => {
+  const promotions = await query(
+    `SELECT id, kind, title, message, cta_label AS "ctaLabel", cta_url AS "ctaUrl",
+            starts_at AS "startsAt", ends_at AS "endsAt", is_active AS "isActive",
+            created_at AS "createdAt", updated_at AS "updatedAt"
+       FROM promotions ORDER BY created_at DESC`,
+  );
+  return c.json({ promotions });
+});
+
+admin.post('/admin/promotions', async (c) => {
+  const parsed = promotionSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) {
+    return c.json({ error: 'validation_failed', issues: z.treeifyError(parsed.error) }, 400);
+  }
+  const value = parsed.data;
+  const promotion = await queryOne(
+    `INSERT INTO promotions
+       (kind, title, message, cta_label, cta_url, starts_at, ends_at, is_active)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+     RETURNING id`,
+    [value.kind, value.title, value.message, value.ctaLabel, value.ctaUrl,
+      value.startsAt, value.endsAt, value.isActive],
+  );
+  return c.json(promotion, 201);
+});
+
+admin.put('/admin/promotions/:id', async (c) => {
+  const parsed = promotionSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) {
+    return c.json({ error: 'validation_failed', issues: z.treeifyError(parsed.error) }, 400);
+  }
+  const value = parsed.data;
+  const rows = await query(
+    `UPDATE promotions
+        SET kind=$1, title=$2, message=$3, cta_label=$4, cta_url=$5,
+            starts_at=$6, ends_at=$7, is_active=$8, updated_at=now()
+      WHERE id=$9 RETURNING id`,
+    [value.kind, value.title, value.message, value.ctaLabel, value.ctaUrl,
+      value.startsAt, value.endsAt, value.isActive, c.req.param('id')],
+  );
+  if (rows.length === 0) return c.json({ error: 'not_found' }, 404);
+  return c.json({ ok: true });
+});
+
+admin.delete('/admin/promotions/:id', async (c) => {
+  const rows = await query(`DELETE FROM promotions WHERE id=$1 RETURNING id`, [c.req.param('id')]);
+  if (rows.length === 0) return c.json({ error: 'not_found' }, 404);
+  return c.body(null, 204);
+});
+
 /* ---------------------------------------------------------------- settings */
 
 admin.get('/admin/settings', async (c) => {

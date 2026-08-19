@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 import { flavours } from '@/data/range';
 import { useCart } from '@/hooks/useCart';
 import { useFavorites } from '@/hooks/useFavorites';
 import { CustomerMenu } from '@/components/account/CustomerMenu';
+import { PromotionBar } from '@/components/promotions/PromotionBar';
 
 const offers = [
   'FREE shipping on orders above ₹499',
@@ -11,22 +12,12 @@ const offers = [
   'Buy any 3 packs, get 1 FREE',
 ];
 
-/** Rotating offer strip — the thing every Indian D2C site opens with. */
 export function OfferStrip() {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => setIndex((i) => (i + 1) % offers.length), 4000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="bg-[#1B7A4B] text-white">
-      <p className="mx-auto max-w-7xl px-4 py-2 text-center text-[12px] font-medium sm:text-[13px]">
-        {offers[index]}
-      </p>
-    </div>
-  );
+  return <PromotionBar
+    fallbacks={offers}
+    className="bg-[#1B7A4B] text-white"
+    contentClassName="mx-auto max-w-7xl px-4 py-2 text-center text-[12px] font-medium sm:text-[13px]"
+  />;
 }
 
 export function ShopHeader({

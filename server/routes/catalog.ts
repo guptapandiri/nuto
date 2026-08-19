@@ -4,6 +4,20 @@ import { getCommerceSettings } from '../lib/pricing.ts';
 
 export const catalog = new Hono();
 
+catalog.get('/promotions', async (c) => {
+  const promotions = await query(
+    `SELECT id, kind, title, message, cta_label AS "ctaLabel", cta_url AS "ctaUrl",
+            starts_at AS "startsAt", ends_at AS "endsAt"
+       FROM promotions
+      WHERE is_active
+        AND starts_at <= now()
+        AND (ends_at IS NULL OR ends_at > now())
+      ORDER BY starts_at DESC
+      LIMIT 10`,
+  );
+  return c.json({ promotions });
+});
+
 /** Public catalogue. Only active, in-stock-capable rows are exposed. */
 catalog.get('/catalog', async (c) => {
   const [flavours, sizes, combos, comboItems, settings] = await Promise.all([
