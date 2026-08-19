@@ -10,7 +10,7 @@ import {
   verifyPassword,
   type AdminUser,
 } from '../auth.ts';
-import { query, queryOne } from '../db.ts';
+import { query, queryOne, transaction } from '../db.ts';
 import { isProduction } from '../env.ts';
 
 type Vars = { Variables: { admin: AdminUser } };
@@ -295,6 +295,7 @@ const stockSchema = z.object({
   id: z.string().trim().min(1).max(120),
   stock: z.number().int().min(0).max(100_000).optional(),
   isActive: z.boolean().optional(),
+  pricePaise: z.number().int().min(1).max(10_000_000).optional(),
 });
 
 admin.patch('/admin/inventory', async (c) => {
@@ -302,25 +303,44 @@ admin.patch('/admin/inventory', async (c) => {
   if (!parsed.success) {
     return c.json({ error: 'validation_failed', issues: z.treeifyError(parsed.error) }, 400);
   }
-  const { kind, id, stock, isActive } = parsed.data;
-  if (stock === undefined && isActive === undefined) {
+  const { kind, id, stock, isActive, pricePaise } = parsed.data;
+  if (stock === undefined && isActive === undefined && pricePaise === undefined) {
     return c.json({ error: 'nothing_to_update' }, 400);
   }
 
-  const table = kind === 'variant' ? 'variants' : 'combos';
-  const idColumn = kind === 'variant' ? 'id' : 'slug';
-  const sets: string[] = [];
-  const params: unknown[] = [];
+  const updated = await transaction(async (client) => {
+    if (kind === 'variant') {
+      const variant = await queryOne<{ grams: number }>(
+        'SELECT grams FROM variants WHERE id = $1 FOR UPDATE', [id], client,
+      );
+      if (!variant) return false;
 
-  if (stock !== undefined) { params.push(stock); sets.push(`stock = $${params.length}`); }
-  if (isActive !== undefined) { params.push(isActive); sets.push(`is_active = $${params.length}`); }
-  params.push(id);
+      const sets: string[] = [];
+      const params: unknown[] = [];
+      if (stock !== undefined) { params.push(stock); sets.push(`stock = $${params.length}`); }
+      if (isActive !== undefined) { params.push(isActive); sets.push(`is_active = $${params.length}`); }
+      if (sets.length > 0) {
+        params.push(id);
+        await query(`UPDATE variants SET ${sets.join(', ')} WHERE id = $${params.length}`, params, client);
+      }
+      if (pricePaise !== undefined) {
+        await query('UPDATE pack_sizes SET price_paise = $1 WHERE grams = $2', [pricePaise, variant.grams], client);
+      }
+      return true;
+    }
 
-  const rows = await query(
-    `UPDATE ${table} SET ${sets.join(', ')} WHERE ${idColumn} = $${params.length} RETURNING ${idColumn}`,
-    params,
-  );
-  if (rows.length === 0) return c.json({ error: 'not_found' }, 404);
+    const sets: string[] = [];
+    const params: unknown[] = [];
+    if (stock !== undefined) { params.push(stock); sets.push(`stock = $${params.length}`); }
+    if (isActive !== undefined) { params.push(isActive); sets.push(`is_active = $${params.length}`); }
+    if (pricePaise !== undefined) { params.push(pricePaise); sets.push(`price_paise = $${params.length}`); }
+    params.push(id);
+    const rows = await query(
+      `UPDATE combos SET ${sets.join(', ')} WHERE slug = $${params.length} RETURNING slug`, params, client,
+    );
+    return rows.length > 0;
+  });
+  if (!updated) return c.json({ error: 'not_found' }, 404);
   return c.json({ ok: true });
 });
 
