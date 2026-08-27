@@ -360,6 +360,119 @@ admin.delete('/admin/flavours/:slug', async (c) => {
   return c.json({ ok: true });
 });
 
+const comboItemSchema = z.object({
+  flavourSlug: z.string().trim().min(1).max(80),
+  grams: z.number().int().min(1).max(10_000),
+  quantity: z.number().int().min(1).max(100),
+});
+
+const comboSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  tagline: z.string().trim().min(2).max(160),
+  description: z.string().trim().min(2).max(1_000),
+  pricePaise: z.number().int().min(1).max(10_000_000),
+  image: z.string().trim().min(1).max(2_500_000),
+  badge: z.string().trim().max(60).nullable(),
+  stock: z.number().int().min(0).max(100_000),
+  isActive: z.boolean(),
+  items: z.array(comboItemSchema).min(1).max(100),
+}).superRefine((value, ctx) => {
+  const seen = new Set<string>();
+  for (const [index, item] of value.items.entries()) {
+    const key = `${item.flavourSlug}:${item.grams}`;
+    if (seen.has(key)) ctx.addIssue({ code: 'custom', path: ['items', index], message: 'Duplicate combo item' });
+    seen.add(key);
+  }
+});
+
+const newComboSchema = comboSchema.extend({
+  slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+});
+
+admin.get('/admin/combos', async (c) => {
+  const [comboRows, flavourRows, sizeRows] = await Promise.all([
+    query(
+      `SELECT c.slug, c.name, c.tagline, c.description,
+              c.price_paise AS "pricePaise", c.image, c.badge, c.stock,
+              c.is_active AS "isActive", c.sort_order AS "sortOrder",
+              COALESCE(json_agg(json_build_object(
+                'flavourSlug', ci.flavour_slug, 'grams', ci.grams, 'quantity', ci.quantity
+              ) ORDER BY ci.flavour_slug, ci.grams) FILTER (WHERE ci.combo_slug IS NOT NULL), '[]') AS items
+         FROM combos c LEFT JOIN combo_items ci ON ci.combo_slug = c.slug
+        GROUP BY c.slug ORDER BY c.is_active DESC, c.sort_order, c.name`,
+    ),
+    query(`SELECT slug, name FROM flavours WHERE is_active ORDER BY sort_order, name`),
+    query(`SELECT grams, price_paise AS "pricePaise" FROM pack_sizes ORDER BY sort_order, grams`),
+  ]);
+  return c.json({ combos: comboRows, flavours: flavourRows, sizes: sizeRows });
+});
+
+admin.post('/admin/combos', async (c) => {
+  const parsed = newComboSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: 'validation_failed', issues: z.treeifyError(parsed.error) }, 400);
+  const value = parsed.data;
+  try {
+    await transaction(async (client) => {
+      await query(
+        `INSERT INTO combos
+          (slug, name, tagline, description, price_paise, image, badge, stock, sort_order, is_active)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,
+           COALESCE((SELECT max(sort_order) + 1 FROM combos), 0),$9)`,
+        [value.slug, value.name, value.tagline, value.description, value.pricePaise,
+          value.image, value.badge, value.stock, value.isActive], client,
+      );
+      for (const item of value.items) {
+        await query(
+          `INSERT INTO combo_items (combo_slug, flavour_slug, grams, quantity) VALUES ($1,$2,$3,$4)`,
+          [value.slug, item.flavourSlug, item.grams, item.quantity], client,
+        );
+      }
+    });
+  } catch (error) {
+    if ((error as { code?: string }).code === '23505') return c.json({ error: 'slug_exists' }, 409);
+    if ((error as { code?: string }).code === '23503') return c.json({ error: 'invalid_combo_item' }, 400);
+    throw error;
+  }
+  return c.json({ ok: true }, 201);
+});
+
+admin.put('/admin/combos/:slug', async (c) => {
+  const slug = c.req.param('slug');
+  const parsed = comboSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: 'validation_failed', issues: z.treeifyError(parsed.error) }, 400);
+  const value = parsed.data;
+  try {
+    const updated = await transaction(async (client) => {
+      const rows = await query(
+        `UPDATE combos SET name=$1, tagline=$2, description=$3, price_paise=$4,
+                image=$5, badge=$6, stock=$7, is_active=$8 WHERE slug=$9 RETURNING slug`,
+        [value.name, value.tagline, value.description, value.pricePaise, value.image,
+          value.badge, value.stock, value.isActive, slug], client,
+      );
+      if (rows.length === 0) return false;
+      await query('DELETE FROM combo_items WHERE combo_slug = $1', [slug], client);
+      for (const item of value.items) {
+        await query(
+          `INSERT INTO combo_items (combo_slug, flavour_slug, grams, quantity) VALUES ($1,$2,$3,$4)`,
+          [slug, item.flavourSlug, item.grams, item.quantity], client,
+        );
+      }
+      return true;
+    });
+    if (!updated) return c.json({ error: 'not_found' }, 404);
+  } catch (error) {
+    if ((error as { code?: string }).code === '23503') return c.json({ error: 'invalid_combo_item' }, 400);
+    throw error;
+  }
+  return c.json({ ok: true });
+});
+
+admin.delete('/admin/combos/:slug', async (c) => {
+  const rows = await query('UPDATE combos SET is_active = false WHERE slug = $1 RETURNING slug', [c.req.param('slug')]);
+  if (rows.length === 0) return c.json({ error: 'not_found' }, 404);
+  return c.json({ ok: true });
+});
+
 admin.get('/admin/inventory', async (c) => {
   const variants = await query(
     `SELECT v.id AS sku, f.name AS flavour, v.grams, v.stock, v.is_active AS "isActive",

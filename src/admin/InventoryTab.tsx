@@ -1,6 +1,7 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { api, money, type InventoryCombo, type InventoryVariant } from './api';
 import { FlavoursManager } from './FlavoursManager';
+import { CombosManager } from './CombosManager';
 
 interface InventoryEdit {
   kind: 'variant' | 'combo';
@@ -86,6 +87,7 @@ export function InventoryTab() {
   return (
     <div className="space-y-6">
       <FlavoursManager onChanged={() => void load()} />
+      <CombosManager onChanged={() => void load()} />
       <InventorySection title="Flavour packs" minWidth="44rem">
         <thead className="border-b border-neutral-200 text-[12px] text-neutral-500">
           <tr>

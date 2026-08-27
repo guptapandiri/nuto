@@ -155,6 +155,31 @@ export interface AdminPackSize {
   pricePaise: number;
 }
 
+export interface AdminComboItem {
+  flavourSlug: string;
+  grams: number;
+  quantity: number;
+}
+
+export interface AdminCombo {
+  slug: string;
+  name: string;
+  tagline: string;
+  description: string;
+  pricePaise: number;
+  image: string;
+  badge: string | null;
+  stock: number;
+  isActive: boolean;
+  sortOrder: number;
+  items: AdminComboItem[];
+}
+
+export interface ComboFlavourOption {
+  slug: string;
+  name: string;
+}
+
 export type PromotionKind = 'product_launch' | 'offer' | 'announcement';
 
 export interface Promotion {
