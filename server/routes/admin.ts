@@ -279,7 +279,8 @@ const flavourSchema = z.object({
   blurb: z.string().trim().max(500),
   accent: z.string().regex(/^#[0-9a-f]{6}$/i),
   heat: z.number().int().min(0).max(3),
-  image: z.string().trim().min(1).max(500),
+  // Images may be an existing site path or an optimized data URL uploaded by admin.
+  image: z.string().trim().min(1).max(2_500_000),
   isActive: z.boolean(),
 });
 

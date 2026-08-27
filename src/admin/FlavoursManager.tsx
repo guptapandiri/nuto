@@ -14,12 +14,42 @@ const slugify = (value: string) => value.toLowerCase().trim()
   .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const input = 'mt-1.5 w-full rounded-lg border border-neutral-300 px-3 py-2 text-[13px] focus:border-[#1B7A4B] focus:outline-none';
 
+async function optimizeImage(file: File): Promise<string> {
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    throw new Error('Choose a JPG, PNG, or WebP image.');
+  }
+  if (file.size > 10 * 1024 * 1024) throw new Error('Image must be smaller than 10 MB.');
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.src = objectUrl;
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error('Could not read that image.'));
+    });
+    const scale = Math.min(1, 1200 / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Could not process that image.');
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const result = canvas.toDataURL('image/webp', 0.82);
+    if (result.length > 2_400_000) throw new Error('Image is still too large after compression.');
+    return result;
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 export function FlavoursManager({ onChanged }: { onChanged: () => void }) {
   const [flavours, setFlavours] = useState<AdminFlavour[]>([]);
   const [sizes, setSizes] = useState<AdminPackSize[]>([]);
   const [form, setForm] = useState<FormState>(blank);
   const [editing, setEditing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [processingImage, setProcessingImage] = useState(false);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -35,6 +65,17 @@ export function FlavoursManager({ onChanged }: { onChanged: () => void }) {
     setEditing(item.slug);
     setForm({ ...item, initialStock: '100' });
     setError('');
+  }
+
+  async function selectImage(file: File | undefined) {
+    if (!file) return;
+    setProcessingImage(true); setError('');
+    try {
+      const image = await optimizeImage(file);
+      setForm((current) => ({ ...current, image }));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not process that image.');
+    } finally { setProcessingImage(false); }
   }
 
   async function submit(event: React.FormEvent) {
@@ -83,7 +124,12 @@ export function FlavoursManager({ onChanged }: { onChanged: () => void }) {
             <Field label="URL slug"><input required disabled={Boolean(editing)} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={form.slug} onChange={(e) => setForm({ ...form, slug: slugify(e.target.value) })} className={input} placeholder="mint-masala" /></Field>
             <Field label="Short note"><input maxLength={120} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} className={input} placeholder="Fresh, savoury finish" /></Field>
             <Field label="Description"><textarea rows={3} maxLength={500} value={form.blurb} onChange={(e) => setForm({ ...form, blurb: e.target.value })} className={input} placeholder="Describe the flavour for shoppers." /></Field>
-            <Field label="Image URL or site path"><input required maxLength={500} value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} className={input} placeholder="/flavours/mint-masala.jpg" /></Field>
+            <Field label="Flavour image">
+              <input aria-label="Upload flavour image" required={!form.image} type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => void selectImage(e.target.files?.[0])} className="mt-1.5 block w-full rounded-lg border border-dashed border-neutral-300 bg-white px-3 py-3 text-[12px] file:mr-3 file:rounded file:border-0 file:bg-[#EAF5EF] file:px-3 file:py-1.5 file:font-semibold file:text-[#1B7A4B]" />
+              <p className="mt-1 text-[10px] text-neutral-500">JPG, PNG, or WebP · up to 10 MB · automatically resized for the shop</p>
+              {processingImage && <p role="status" className="mt-2 text-[11px] font-medium text-[#1B7A4B]">Optimizing image…</p>}
+              {form.image && <div className="mt-2 flex items-center gap-3 rounded-lg border border-neutral-200 bg-white p-2"><img src={form.image} alt="Flavour preview" className="size-16 rounded object-cover" /><div><p className="text-[11px] font-semibold">Image ready</p><p className="text-[10px] text-neutral-500">Choose another file to replace it.</p></div></div>}
+            </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Accent colour"><div className="flex gap-2"><input aria-label="Choose accent colour" type="color" value={form.accent} onChange={(e) => setForm({ ...form, accent: e.target.value })} className="mt-1.5 h-9 w-12 rounded border" /><input required aria-label="Accent colour hex" pattern="#[0-9A-Fa-f]{6}" value={form.accent} onChange={(e) => setForm({ ...form, accent: e.target.value })} className={input} /></div></Field>
               <Field label="Heat"><select value={form.heat} onChange={(e) => setForm({ ...form, heat: Number(e.target.value) as FormState['heat'] })} className={input}><option value={0}>Mild</option><option value={1}>Medium</option><option value={2}>Hot</option><option value={3}>Very hot</option></select></Field>
@@ -93,7 +139,7 @@ export function FlavoursManager({ onChanged }: { onChanged: () => void }) {
           </div>
           {!editing && sizes.length > 0 && <p className="mt-3 text-[11px] text-neutral-500">Creates: {sizes.map((s) => `${s.grams}g (${money(s.pricePaise)})`).join(', ')}</p>}
           {error && <p role="alert" className="mt-3 text-[12px] text-red-600">{error}</p>}
-          <div className="mt-4 flex gap-2"><button type="submit" disabled={saving} className="rounded-lg bg-[#1B7A4B] px-4 py-2 text-[12px] font-bold text-white disabled:opacity-50">{saving ? 'Saving…' : editing ? 'Save flavour' : 'Create flavour'}</button>{editing && <button type="button" onClick={reset} className="rounded-lg border px-4 py-2 text-[12px] font-semibold">Cancel</button>}</div>
+          <div className="mt-4 flex gap-2"><button type="submit" disabled={saving || processingImage || !form.image} className="rounded-lg bg-[#1B7A4B] px-4 py-2 text-[12px] font-bold text-white disabled:opacity-50">{saving ? 'Saving…' : editing ? 'Save flavour' : 'Create flavour'}</button>{editing && <button type="button" onClick={reset} className="rounded-lg border px-4 py-2 text-[12px] font-semibold">Cancel</button>}</div>
         </form>
         <div className="grid content-start gap-2 sm:grid-cols-2">
           {flavours.map((item) => <article key={item.slug} className={`rounded-lg border p-3 ${item.isActive ? 'border-neutral-200' : 'bg-neutral-50 opacity-75'}`}>
