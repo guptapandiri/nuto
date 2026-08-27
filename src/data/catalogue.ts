@@ -24,8 +24,8 @@ export function variantSlug(flavourSlug: string, grams: number): string {
 }
 
 /** Every flavour × size combination, built once at module load. */
-const variants = new Map<string, CatalogueItem>(
-  flavours.flatMap((flavour) =>
+function buildVariants(): Map<string, CatalogueItem> {
+  return new Map(flavours.flatMap((flavour) =>
     packSizes.map((size): [string, CatalogueItem] => {
       const slug = variantSlug(flavour.slug, size.grams);
       return [
@@ -36,12 +36,12 @@ const variants = new Map<string, CatalogueItem>(
           image: flavour.image,
           weightGrams: size.grams,
           priceInPaise: size.priceInPaise,
-          inStock: true,
+          inStock: (flavour.variants?.find((item) => item.grams === size.grams)?.stock ?? 1) > 0,
         },
       ];
     }),
-  ),
-);
+  ));
+}
 
 /**
  * Combos are single SKUs, so they go in the cart as one line rather than as
@@ -52,8 +52,8 @@ export function comboSlug(slug: string): string {
   return `combo-${slug}`;
 }
 
-const comboItems = new Map<string, CatalogueItem>(
-  combos.map((combo): [string, CatalogueItem] => {
+function buildComboItems(): Map<string, CatalogueItem> {
+  return new Map(combos.map((combo): [string, CatalogueItem] => {
     const slug = comboSlug(combo.slug);
     return [
       slug,
@@ -66,8 +66,17 @@ const comboItems = new Map<string, CatalogueItem>(
         inStock: combo.inStock,
       },
     ];
-  }),
-);
+  }));
+}
+
+let variants = buildVariants();
+let comboItems = buildComboItems();
+
+/** Rebuilds cart lookups after the API replaces the bundled catalogue arrays. */
+export function rebuildCatalogue(): void {
+  variants = buildVariants();
+  comboItems = buildComboItems();
+}
 
 export function getCatalogueItem(slug: string): CatalogueItem | undefined {
   const variant = variants.get(slug);

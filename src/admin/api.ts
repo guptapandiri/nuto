@@ -137,6 +137,24 @@ export interface InventoryCombo {
   pricePaise: number;
 }
 
+export interface AdminFlavour {
+  slug: string;
+  name: string;
+  note: string;
+  blurb: string;
+  accent: string;
+  heat: 0 | 1 | 2 | 3;
+  image: string;
+  isActive: boolean;
+  sortOrder: number;
+  skuCount: number;
+}
+
+export interface AdminPackSize {
+  grams: number;
+  pricePaise: number;
+}
+
 export type PromotionKind = 'product_launch' | 'offer' | 'announcement';
 
 export interface Promotion {

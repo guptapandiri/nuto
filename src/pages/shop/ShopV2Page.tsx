@@ -60,7 +60,7 @@ export function ShopV2Page({ searchOnly = false }: { searchOnly?: boolean }) {
               New launch
             </span>
             <h1 className="mt-3 text-2xl leading-tight font-extrabold sm:text-4xl">
-              Seven flavours.
+              {flavours.length} flavours.
               <br />
               Starting at just ₹{rupees(packSizes[0]!.priceInPaise)}.
             </h1>

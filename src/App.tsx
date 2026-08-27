@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { AnnouncementBar } from '@/components/layout/AnnouncementBar';
@@ -21,6 +21,7 @@ import { FlavourPage } from '@/pages/shop/FlavourPage';
 import { GiftingV2Page } from '@/pages/shop/GiftingV2Page';
 import { SearchResultsPage, ShopV2Page } from '@/pages/shop/ShopV2Page';
 import { StoryV2Page } from '@/pages/shop/StoryV2Page';
+import { syncLiveCatalogue } from '@/data/liveCatalogue';
 
 /*
  * The admin dashboard and the design concepts are lazy-loaded. Neither is ever
@@ -50,7 +51,18 @@ function Loading() {
 }
 
 export function App() {
+  const [catalogueVersion, setCatalogueVersion] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    void syncLiveCatalogue().then((updated) => {
+      if (active && updated) setCatalogueVersion((value) => value + 1);
+    });
+    return () => { active = false; };
+  }, []);
+
   return (
+    <Fragment key={catalogueVersion}>
     <CartProvider>
       <FavoritesProvider>
         <AccountProvider>
@@ -92,6 +104,7 @@ export function App() {
         </AccountProvider>
       </FavoritesProvider>
     </CartProvider>
+    </Fragment>
   );
 }
 

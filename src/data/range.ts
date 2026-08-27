@@ -43,6 +43,8 @@ export interface Flavour {
   /** Invented social proof, for layout only. */
   rating: number;
   reviewCount: number;
+  /** Live stock by pack size when the catalogue has been loaded from the API. */
+  variants?: { grams: number; stock: number }[];
 }
 
 export const flavours: Flavour[] = [

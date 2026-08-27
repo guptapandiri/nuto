@@ -273,6 +273,92 @@ admin.patch('/admin/orders/:id', async (c) => {
 
 /* --------------------------------------------------------------- inventory */
 
+const flavourSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  note: z.string().trim().max(120),
+  blurb: z.string().trim().max(500),
+  accent: z.string().regex(/^#[0-9a-f]{6}$/i),
+  heat: z.number().int().min(0).max(3),
+  image: z.string().trim().min(1).max(500),
+  isActive: z.boolean(),
+});
+
+const newFlavourSchema = flavourSchema.extend({
+  slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  initialStock: z.number().int().min(0).max(100_000),
+});
+
+admin.get('/admin/flavours', async (c) => {
+  const [flavours, sizes] = await Promise.all([
+    query(
+      `SELECT slug, name, note, blurb, accent, heat, image,
+              is_active AS "isActive", sort_order AS "sortOrder",
+              (SELECT count(*)::int FROM variants v WHERE v.flavour_slug = f.slug) AS "skuCount"
+         FROM flavours f
+        ORDER BY is_active DESC, sort_order, name`,
+    ),
+    query(`SELECT grams, price_paise AS "pricePaise" FROM pack_sizes ORDER BY sort_order, grams`),
+  ]);
+  return c.json({ flavours, sizes });
+});
+
+admin.post('/admin/flavours', async (c) => {
+  const parsed = newFlavourSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: 'validation_failed', issues: z.treeifyError(parsed.error) }, 400);
+  const value = parsed.data;
+  try {
+    await transaction(async (client) => {
+      await query(
+        `INSERT INTO flavours
+           (slug, name, note, blurb, accent, heat, image, sort_order, is_active)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,
+           COALESCE((SELECT max(sort_order) + 1 FROM flavours), 0),$8)`,
+        [value.slug, value.name, value.note, value.blurb, value.accent, value.heat, value.image, value.isActive], client,
+      );
+      await query(
+        `INSERT INTO variants (id, flavour_slug, grams, stock, is_active)
+         SELECT $1 || '-' || grams, $1, grams, $2, $3 FROM pack_sizes`,
+        [value.slug, value.initialStock, value.isActive], client,
+      );
+    });
+  } catch (error) {
+    if ((error as { code?: string }).code === '23505') return c.json({ error: 'slug_exists' }, 409);
+    throw error;
+  }
+  return c.json({ ok: true }, 201);
+});
+
+admin.put('/admin/flavours/:slug', async (c) => {
+  const slug = c.req.param('slug');
+  const parsed = flavourSchema.safeParse(await c.req.json().catch(() => null));
+  if (!parsed.success) return c.json({ error: 'validation_failed', issues: z.treeifyError(parsed.error) }, 400);
+  const value = parsed.data;
+  const updated = await transaction(async (client) => {
+    const rows = await query(
+      `UPDATE flavours SET name=$1, note=$2, blurb=$3, accent=$4, heat=$5,
+              image=$6, is_active=$7 WHERE slug=$8 RETURNING slug`,
+      [value.name, value.note, value.blurb, value.accent, value.heat, value.image, value.isActive, slug], client,
+    );
+    if (rows.length === 0) return false;
+    await query('UPDATE variants SET is_active = $1 WHERE flavour_slug = $2', [value.isActive, slug], client);
+    return true;
+  });
+  if (!updated) return c.json({ error: 'not_found' }, 404);
+  return c.json({ ok: true });
+});
+
+admin.delete('/admin/flavours/:slug', async (c) => {
+  const slug = c.req.param('slug');
+  const updated = await transaction(async (client) => {
+    const rows = await query('UPDATE flavours SET is_active = false WHERE slug = $1 RETURNING slug', [slug], client);
+    if (rows.length === 0) return false;
+    await query('UPDATE variants SET is_active = false WHERE flavour_slug = $1', [slug], client);
+    return true;
+  });
+  if (!updated) return c.json({ error: 'not_found' }, 404);
+  return c.json({ ok: true });
+});
+
 admin.get('/admin/inventory', async (c) => {
   const variants = await query(
     `SELECT v.id AS sku, f.name AS flavour, v.grams, v.stock, v.is_active AS "isActive",
